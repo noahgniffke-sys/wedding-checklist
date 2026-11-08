@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Wedding Checklist</title>
+<style>
+  :root {
+    --bg: #0f0f12;
+    --card: #1a1a1f;
+    --accent: #e8b4b8;
+    --accent2: #d4af37;
+    --text: #f5f5f5;
+    --muted: #a0a0a8;
+    --done: #4ade80;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.8rem; margin-bottom: 4px; color: var(--accent); }
+  .subtitle { color: var(--muted); margin-bottom: 20px; font-size: 0.95rem; }
+  .progress-wrap { background: #2a2a32; border-radius: 999px; height: 10px; margin: 16px 0 24px; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0%; transition: width 0.3s; }
+  .progress-text { text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: -16px; margin-bottom: 20px; }
+  .category { margin-bottom: 28px; }
+  .category h2 { font-size: 1.15rem; color: var(--accent2); margin-bottom: 10px; border-bottom: 1px solid #2a2a32; padding-bottom: 6px; }
+  .task { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--card); border-radius: 10px; margin-bottom: 8px; transition: opacity 0.2s; }
+  .task.done { opacity: 0.55; }
+  .task.done .task-text { text-decoration: line-through; }
+  input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--done); margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+  .task-text { flex: 1; }
+  .task-notes { width: 100%; margin-top: 6px; background: transparent; border: none; color: var(--muted); font-size: 0.85rem; resize: vertical; }
+  .task-notes:focus { outline: 1px solid #333; border-radius: 4px; }
+  .footer { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 40px; }
+</style>
+</head>
+<body>
+  <h1>Our Wedding Checklist</h1>
+  <p class="subtitle">Gniffke Rancho Event · April 24, 2027 · ~175–200 guests</p>
+  <div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+  <div class="progress-text" id="progressText">0% complete</div>
+  <div id="list"></div>
+  <div class="footer">Checks are saved in this browser. Share the link with your partner.</div>
+<script>
+const tasks = [
+  { cat: "Attire & Personal Prep", text: "Schedule trial hair and makeup" },
+  { cat: "Attire & Personal Prep", text: "Noah’s tux" },
+  { cat: "Attire & Personal Prep", text: "Trader Joe’s soup for getting-ready morning" },
+  { cat: "Binder & Core Planning", text: "Create master binder (coordinator contacts + vendor emails/phones + event staff + full timeline + bookings)" },
+  { cat: "Binder & Core Planning", text: "Update overall budget" },
+  { cat: "Binder & Core Planning", text: "Finalize and send invitations" },
+  { cat: "Binder & Core Planning", text: "Set up wedding registry" },
+  { cat: "Binder & Core Planning", text: "Add all venue workers as guests (to account for their meals)" },
+  { cat: "Staff & Help", text: "Hire 2–3 event staff / wedding helpers (drinks, food, cake, support)" },
+  { cat: "Staff & Help", text: "Decide on an MC (consider asking Olivia)" },
+  { cat: "Staff & Help", text: "Find a content creator" },
+  { cat: "Staff & Help", text: "Confirm family processional order (who walks down the aisle before the couple)" },
+  { cat: "Ceremony & Speeches", text: "Write vows" },
+  { cat: "Ceremony & Speeches", text: "Obtain marriage license" },
+  { cat: "Ceremony & Speeches", text: "Hire officiant / marriage counselor" },
+  { cat: "Ceremony & Speeches", text: "Assign speeches" },
+  { cat: "Ceremony & Speeches", text: "Learn and choreograph first dance" },
+  { cat: "Food, Drinks & Tables", text: "Plan drinks table (mocktails, lemonade, etc.)" },
+  { cat: "Food, Drinks & Tables", text: "Set up grazing table / charcuterie for cocktail hour" },
+  { cat: "Food, Drinks & Tables", text: "Stock snacks (Costco bulk + before/after dinner)" },
+  { cat: "Food, Drinks & Tables", text: "Sweets table (cookies, etc.)" },
+  { cat: "Food, Drinks & Tables", text: "Salad table" },
+  { cat: "Food, Drinks & Tables", text: "Per-table setup: napkins, food trays/plates, place mats (customize with menu)" },
+  { cat: "Food, Drinks & Tables", text: "Glass cups for tables (confirm quantities; some already ordered)" },
+  { cat: "Food, Drinks & Tables", text: "Utensils" },
+  { cat: "Food, Drinks & Tables", text: "Confirm linen napkins (already purchased)" },
+  { cat: "Food, Drinks & Tables", text: "Buy Costco half-sheet cake(s) + main cake" },
+  { cat: "Food, Drinks & Tables", text: "Order florals" },
+  { cat: "Food, Drinks & Tables", text: "Kids activity: coloring books + colored pencils with clipboards" },
+  { cat: "Photography, Video & Music", text: "Book flights for photographer and videographer" },
+  { cat: "Photography, Video & Music", text: "Decide photo locations during mocktail/cocktail hour" },
+  { cat: "Photography, Video & Music", text: "Choose who is in formal photos + gather inspiration photos" },
+  { cat: "Photography, Video & Music", text: "Create music playlists" },
+  { cat: "Photography, Video & Music", text: "Confirm hotel booking so you can go straight there (no check-in delay)" },
+  { cat: "Honeymoon & After", text: "Plan and book honeymoon" },
+  { cat: "Honeymoon & After", text: "Pack bags for honeymoon" },
+  { cat: "Honeymoon & After", text: "Decide where you’ll live afterward" },
+  { cat: "Honeymoon & After", text: "Diffusers with signature essential oil scent at rehearsal dinner" },
+  { cat: "Day-Of & Misc", text: "Plan rehearsal dinner (location + details — Noah’s item)" },
+  { cat: "Day-Of & Misc", text: "Newspaper-style program or little games for guests" },
+  { cat: "Day-Of & Misc", text: "Getting an Ali and Ikea bag and cutting out the bottom of it" }
+];
+
+const STORAGE_KEY = "wedding-checklist-v1";
+
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function render() {
+  const state = loadState();
+  const container = document.getElementById("list");
+  container.innerHTML = "";
+  const cats = {};
+  tasks.forEach((t, i) => {
+    if (!cats[t.cat]) cats[t.cat] = [];
+    cats[t.cat].push({ ...t, id: i });
+  });
+
+  Object.keys(cats).forEach(cat => {
+    const section = document.createElement("div");
+    section.className = "category";
+    section.innerHTML = `<h2>${cat}</h2>`;
+    cats[cat].forEach(task => {
+      const id = task.id;
+      const done = !!state[id]?.done;
+      const notes = state[id]?.notes || "";
+      const div = document.createElement("div");
+      div.className = "task" + (done ? " done" : "");
+      div.innerHTML = `
+        <input type="checkbox" data-id="${id}" ${done ? "checked" : ""}>
+        <div class="task-text">
+          ${task.text}
+          <textarea class="task-notes" data-id="${id}" placeholder="Notes...">${notes}</textarea>
+        </div>
+      `;
+      section.appendChild(div);
+    });
+    container.appendChild(section);
+  });
+
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener("change", e => {
+      const id = e.target.dataset.id;
+      const s = loadState();
+      if (!s[id]) s[id] = {};
+      s[id].done = e.target.checked;
+      saveState(s);
+      e.target.closest(".task").classList.toggle("done", e.target.checked);
+      updateProgress();
+    });
+  });
+
+  document.querySelectorAll(".task-notes").forEach(ta => {
+    ta.addEventListener("input", e => {
+      const id = e.target.dataset.id;
+      const s = loadState();
+      if (!s[id]) s[id] = {};
+      s[id].notes = e.target.value;
+      saveState(s);
+    });
+  });
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const state = loadState();
+  const total = tasks.length;
+  const done = Object.values(state).filter(s => s.done).length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById("progress").style.width = pct + "%";
+  document.getElementById("progressText").textContent = `${done} / ${total} · ${pct}% complete`;
+}
+
+render();
+</script>
+</body>
+</html>
